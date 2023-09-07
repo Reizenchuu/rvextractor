@@ -25,15 +25,15 @@ def extractTextFromYAMLs():
     for filename in os.listdir(directory_path):
         # Check if the file is a .yaml file and its name matches the pattern 'MapXXX'
         print(f"Processing {filename}")
-        if filename.endswith(".yaml") and re.match(r'^Map\d{3}\.yaml$', filename):
+        if filename.endswith(".yaml") and re.match(r'^Map00\d{1}\.yaml$', filename):
             # Get the complete file path
             file_path = os.path.join(directory_path, filename)
             # Send the file path to the sip() method
-            textExtracts = map.extractTextFromMapYaml(file_path, output_dir, textExtracts)
-            
+            textExtracts = map.extractTextFromMapYaml2(file_path, output_dir, textExtracts)
+        
 
 
 extractTextFromYAMLs()
-with open("dictionary_output.txt", 'w') as file:
+with open("dictionary_output.txt", 'w', encoding='utf-8') as file:
     for key, value in textExtracts.items():
         file.write(f"{key}={value}\n")
