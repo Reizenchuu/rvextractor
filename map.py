@@ -3,54 +3,7 @@ import re
 from util import insertText
 
 
-def extractTextFromMapYaml(mapPath, output_dir, textExtracts): 
-    with open(mapPath, 'r', encoding='utf-8') as file:
-        mapData = file.read().splitlines()  
-
-    fileName = os.path.basename(mapPath).replace(".yaml", "")
-
-    
-    for idx, line in enumerate(mapData):
-        # Check for desired line and extract relevant data
-        if re.match(r".*!ruby/object:RPG::EventCommand.*401.*", line):
-        # if "!ruby/object:RPG::EventCommand" in line and "401" in line:
-            start_index = line.find("p: [") + 4
-            end_index = line.find("]}")
-            japaneseText = line[start_index:end_index]
-            eventName = ""
-            eventId = ""
-            pageCount = 0
-            # Search for the "!ruby/object:RPG::Event$" in lines above the current line
-            for reverse_index in range(idx, -1, -1):
-                if re.match(r".*!ruby/object:RPG::Event$", mapData[reverse_index]):
-                    # After finding the line, look for the line with "name:" after it
-                    nameFound = False
-                    eventIdFound = False
-                    for forward_index in range(reverse_index + 1, len(mapData)):
-                        if re.match(r".*name: .*", mapData[forward_index]):
-                        # if "name: " in mapData[forward_index]:
-                            eventName = mapData[forward_index]
-                            eventName = eventName.replace("name: ", "").strip()
-                            nameFound = True
-                        if re.match(r".*id: .*", mapData[forward_index]):
-                        # if "id: " in mapData[forward_index]:
-                            eventId = mapData[forward_index]
-                            eventId = eventId.replace("id: ", "").strip()
-                            eventIdFound = True
-                        if eventIdFound and nameFound:
-                            break
-                    #Getting page number
-                    for forward_index in range(reverse_index+1, idx):
-                        if re.match(r".*!ruby/object:RPG::Event::Page$", mapData[forward_index]):
-                            pageCount += 1
-                    break
-            eventSrc = f"{fileName}/{eventName}(id:{eventId})/p{pageCount}"
-            textExtracts = insertText(textExtracts, japaneseText, eventSrc, fileName)
-    return textExtracts
-
-
-
-def extractTextFromMapYaml2(mapPath, output_dir, textExtracts): 
+def extractTextFromMapYaml(mapPath, textExtracts): 
     # Pattern to extract Japanese text
     pattern = re.compile(r".*!ruby/object:RPG::EventCommand.*401.*")
 
@@ -82,19 +35,50 @@ def extractTextFromMapYaml2(mapPath, output_dir, textExtracts):
                 end_index = line.find("]}")
                 japaneseText = line[start_index:end_index]
 
-                # Find the associated event name and id + page
-                for prev_line in listOfLines:
-                    if event_pattern.match(prev_line):
-                        break
-                    if name_pattern.match(prev_line):
-                        eventName = prev_line.replace("name: ", "").strip()
-                    elif id_pattern.match(prev_line):
-                        eventId = prev_line.replace("id: ", "").strip()
-                    elif page_pattern.match(prev_line):
-                        pageCount += 1
+                # # Find the associated event name and id + page
+                # for prev_line in listOfLines:
+                #     if event_pattern.match(prev_line):
+                #         break
+                #     if name_pattern.match(prev_line):
+                #         eventName = prev_line.replace("name: ", "").strip()
+                #     elif id_pattern.match(prev_line):
+                #         eventId = prev_line.replace("id: ", "").strip()
+                #     elif page_pattern.match(prev_line):
+                #         pageCount += 1
 
-                eventSrc = f"{fileName}/{eventName}(id:{eventId})/p{pageCount}"
-                textExtracts = insertText(textExtracts, japaneseText, eventSrc, fileName)
+                # eventSrc = f"{fileName}/{eventName}(id:{eventId})/p{pageCount}"
+                textExtracts = insertText(textExtracts, japaneseText, "Dialogue", fileName)
         
             line = file.readline()
     return textExtracts
+
+def patchTranslationsIntoMapYAML(mapPath, outputPath, translationsDic):
+    fileName = os.path.basename(mapPath).replace(".yaml", "")
+    # Pattern to extract Japanese text
+    pattern = re.compile(r".*!ruby/object:RPG::EventCommand.*401.*")
+    with open(mapPath, "r", encoding='utf-8') as file:
+        fileContent = file.readlines()
+    translatedFileLines = []
+    for line in fileContent:
+        japaneseText = ""
+        if pattern.match(line):
+            start_index = line.find("p: [") + 4
+            end_index = line.find("]}")
+            japaneseText = line[start_index:end_index]
+            # Raising exception if japanese text is not found in translation dictionnary
+            if japaneseText not in translationsDic:
+                print(f"Translation files corrupted! couldn't find the following japanese text: {japaneseText}")
+                return -1
+            #If no translation, skip text
+            if translationsDic[japaneseText].strip() == "":
+                translatedFileLines.append(line)
+                continue
+            #replacing the japanese text with its translation
+            line = line.replace(japaneseText, translationsDic[japaneseText])
+            translatedFileLines.append(line)
+        else: 
+            translatedFileLines.append(line)
+    #writing new translated yaml file
+    translatedYaml = os.path.join(outputPath, f"{fileName}.yaml")
+    with open(translatedYaml, "w", encoding='utf-8') as file:
+        file.writelines(translatedFileLines)
