@@ -5,7 +5,7 @@ from util import insertText
 
 def extractTextFromMapYaml(mapPath, textExtracts): 
     # Pattern to extract Japanese text
-    pattern = re.compile(r".*!ruby/object:RPG::EventCommand.*401.*")
+    pattern = re.compile(r".*!ruby/object:RPG::EventCommand.*c: 401.*p.*")
 
     # Other pattern initializations
     event_pattern = re.compile(r".*!ruby/object:RPG::Event$")
@@ -17,12 +17,8 @@ def extractTextFromMapYaml(mapPath, textExtracts):
     
     with open(mapPath, "r", encoding='utf-8') as file:
         line = file.readline()
-        listOfLines = []
         while line:
             #emptying list of lines to decrease loop computing
-            if event_pattern.match(line):
-                listOfLines = []
-            listOfLines.insert(0, line)
             eventName = ""
             eventId = ""
             pageCount = 0
@@ -55,7 +51,7 @@ def extractTextFromMapYaml(mapPath, textExtracts):
 def patchTranslationsIntoMapYAML(mapPath, outputPath, translationsDic):
     fileName = os.path.basename(mapPath).replace(".yaml", "")
     # Pattern to extract Japanese text
-    pattern = re.compile(r".*!ruby/object:RPG::EventCommand.*401.*")
+    pattern = re.compile(r".*!ruby/object:RPG::EventCommand.*c: 401.*p.*")
     with open(mapPath, "r", encoding='utf-8') as file:
         fileContent = file.readlines()
     translatedFileLines = []

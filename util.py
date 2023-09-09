@@ -39,6 +39,7 @@ def fromJsonFilesToOneDictionnary(yamlDir):
         with open(jsonFilePath, "r", encoding='utf-8') as jsonContent:
             data = json.load(jsonContent)
             for node in data:
+                # JPENDictionnary[node["JP"]] = "HHHHHHHHHHHHHHHHHHHH"
                 JPENDictionnary[node["JP"]] = node["EN"]
     return JPENDictionnary
             
