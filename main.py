@@ -4,10 +4,14 @@ import map
 import util
 
 #Directory creation
+#path for yaml files to process
 directory_path = './yaml/'
+#path for translation folder to patch
 translation_path = './translation/'
+
 outputDir = './extractions/'
 patchedYamlsPath = './patch/'
+
 if not os.path.exists(outputDir):
         os.makedirs(outputDir)
 if not os.path.exists(patchedYamlsPath):
@@ -75,6 +79,8 @@ def patchTranslationsIntoNewYamls():
                 return
 
 
-# extractTextFromYAMLs()
-# fromDictionnaryToExtractedFiles()
+
+# Main: 
+extractTextFromYAMLs()
+fromDictionnaryToExtractedFiles()
 patchTranslationsIntoNewYamls()
